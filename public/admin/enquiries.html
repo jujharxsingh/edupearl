@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Edupearl Immigration Services and Language Point - Administrative Enquiry Management.">
+  <title>Enquiry Management — Edupearl Immigration Services and Language Point</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-wrapper">
+    <!-- Shared Role-Aware Sidebar (Populated by auth-guard.js) -->
+    <aside class="admin-sidebar" id="admin-sidebar" aria-label="Main Admin Navigation">
+      <!-- Injected dynamically by window.authGuard.init() -->
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main">
+      <!-- Shared Top Bar (Populated by auth-guard.js) -->
+      <header class="admin-topbar" id="admin-topbar">
+        <!-- Injected dynamically by window.authGuard.init() -->
+      </header>
+
+      <main class="admin-content">
+        <!-- Module Header -->
+        <header class="dashboard-header">
+          <div class="dashboard-welcome">
+            <div>
+              <h1 class="welcome-title">Enquiry Management</h1>
+              <p class="welcome-sub">Review, filter, track status, add counselor notes, and route prospective student/client leads.</p>
+            </div>
+            <div>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-refresh-listing" aria-label="Refresh enquiries listing">
+                <span aria-hidden="true">&#x21bb;</span> Refresh Enquiries
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Filters & Search Panel -->
+        <section class="filters-card" aria-label="Filter Enquiries">
+          <form id="enquiries-filter-form" onsubmit="return false;">
+            <!-- Row 1: Search, Status, Branch, Service -->
+            <div class="filters-grid">
+              <div class="filter-group">
+                <label for="filter-search" class="filter-label">Search Keyword</label>
+                <input type="text" id="filter-search" class="filter-control" placeholder="Name, email, phone, reference...">
+              </div>
+
+              <div class="filter-group">
+                <label for="filter-status" class="filter-label">Status</label>
+                <select id="filter-status" class="filter-control">
+                  <option value="">All Statuses</option>
+                  <option value="new">New</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="converted">Converted</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="filter-branch" class="filter-label">Preferred Branch</label>
+                <select id="filter-branch" class="filter-control">
+                  <option value="">All Branches</option>
+                  <!-- Populated dynamically via GET /api/branches -->
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="filter-service" class="filter-label">Service / Course</label>
+                <select id="filter-service" class="filter-control">
+                  <option value="">All Services &amp; Courses</option>
+                  <!-- Populated dynamically via GET /api/services -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 2: Date From, Date To, Sort By, Sort Order, Actions -->
+            <div class="filters-grid-row2">
+              <div class="filter-group">
+                <label for="filter-date-from" class="filter-label">Date From</label>
+                <input type="date" id="filter-date-from" class="filter-control">
+              </div>
+
+              <div class="filter-group">
+                <label for="filter-date-to" class="filter-label">Date To</label>
+                <input type="date" id="filter-date-to" class="filter-control">
+              </div>
+
+              <div class="filter-group">
+                <label for="filter-sort-by" class="filter-label">Sort By</label>
+                <select id="filter-sort-by" class="filter-control">
+                  <option value="created_at">Submission Date</option>
+                  <option value="status">Status</option>
+                  <option value="id">Record ID</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="filter-sort-order" class="filter-label">Sort Order</label>
+                <select id="filter-sort-order" class="filter-control">
+                  <option value="DESC">Newest First</option>
+                  <option value="ASC">Oldest First</option>
+                </select>
+              </div>
+
+              <div class="filter-group filter-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="btn-clear-filters" style="width: 100%;">
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <!-- Enquiries Data Card -->
+        <section class="card" aria-label="Enquiries Listing">
+          <!-- Metadata Bar (Count, Page Size) -->
+          <div class="table-meta-bar">
+            <div id="enquiries-count-info" style="font-weight: 600;">
+              Loading enquiries...
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="page-size-select" style="font-size: 0.8125rem; font-weight: 600;">Page Size:</label>
+              <select id="page-size-select" class="filter-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.8125rem;">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Error Alert Banner -->
+          <div id="enquiries-error-banner" style="display: none;" class="alert alert-danger" role="alert">
+            <span class="alert-icon" aria-hidden="true">⚠️</span>
+            <div class="alert-content">
+              <strong>Unable to retrieve enquiries</strong>
+              <span id="enquiries-error-text">Network or server error occurred.</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-retry-enquiries" style="margin-left: auto;">
+              Retry
+            </button>
+          </div>
+
+          <!-- Responsive Data Table Container -->
+          <div id="enquiries-table-container">
+            <div class="table-responsive">
+              <table class="data-table" aria-label="Enquiry Records">
+                <thead>
+                  <tr>
+                    <th scope="col">Reference</th>
+                    <th scope="col">Applicant &amp; Contact</th>
+                    <th scope="col">Service / Course</th>
+                    <th scope="col">Preferred Branch</th>
+                    <th scope="col">Target Country</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Submitted</th>
+                    <th scope="col" style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="enquiries-tbody">
+                  <!-- Skeleton loading placeholders rendered on load -->
+                  <tr>
+                    <td colspan="8">
+                      <div class="skeleton skeleton-row"></div>
+                      <div class="skeleton skeleton-row"></div>
+                      <div class="skeleton skeleton-row"></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Empty State Container -->
+          <div id="enquiries-empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon" aria-hidden="true">📭</div>
+            <h3 class="empty-title">No Enquiries Found</h3>
+            <p class="empty-desc">No enquiry records match your selected filter criteria. Try clearing search keywords or resetting status filters.</p>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-empty-clear-filters" style="margin-top: 1rem;">
+              Reset All Filters
+            </button>
+          </div>
+
+          <!-- Pagination Navigation Bar -->
+          <nav class="pagination-wrapper" aria-label="Enquiries Pagination Navigation" id="pagination-nav-container">
+            <div class="pagination-info" id="pagination-page-info">
+              Page 1 of 1
+            </div>
+            <div class="pagination-controls">
+              <button type="button" class="btn-pagination" id="btn-prev-page" disabled aria-label="Previous Page">
+                &larr; Previous
+              </button>
+              <span class="pagination-indicator" id="pagination-indicator-text">Page 1</span>
+              <button type="button" class="btn-pagination" id="btn-next-page" disabled aria-label="Next Page">
+                Next &rarr;
+              </button>
+            </div>
+          </nav>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Accessible Modal Dialog for Details, Status Update & Branch Reassignment -->
+  <div class="modal-overlay" id="enquiry-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-enquiry-ref" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="ref-code" id="modal-enquiry-ref">ENQ-XXXX-XXXX</span>
+          <span id="modal-status-badge"></span>
+        </div>
+        <button type="button" class="btn-modal-close" id="btn-modal-close" aria-label="Close enquiry details modal">&times;</button>
+      </div>
+
+      <div class="modal-body" id="enquiry-modal-body">
+        <!-- Modal Alert Feedback Box -->
+        <div id="modal-alert-box" style="display: none;" class="alert" role="alert">
+          <span class="alert-icon" id="modal-alert-icon" aria-hidden="true">ℹ️</span>
+          <div class="alert-content">
+            <span id="modal-alert-text"></span>
+          </div>
+        </div>
+
+        <!-- 1. Applicant & Submission Details -->
+        <section aria-labelledby="applicant-details-heading">
+          <h3 class="detail-section-title" id="applicant-details-heading">Applicant Information</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Full Name</span>
+              <span class="detail-value" id="modal-applicant-name">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Email Address</span>
+              <span class="detail-value" id="modal-applicant-email">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Phone Number</span>
+              <span class="detail-value" id="modal-applicant-phone">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">City / Location</span>
+              <span class="detail-value" id="modal-applicant-city">—</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Consultation Requirements -->
+        <section aria-labelledby="consultation-details-heading">
+          <h3 class="detail-section-title" id="consultation-details-heading">Consultation Requirements</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Service / Course Requested</span>
+              <span class="detail-value" id="modal-service-title">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Preferred Branch</span>
+              <span class="detail-value" id="modal-branch-name">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Target Destination Country</span>
+              <span class="detail-value" id="modal-target-country">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Submission Date</span>
+              <span class="detail-value" id="modal-submission-date">—</span>
+            </div>
+          </div>
+
+          <!-- Applicant Message Box -->
+          <div style="margin-top: 1rem;">
+            <span class="detail-label" style="display: block; margin-bottom: 0.375rem;">Applicant Message</span>
+            <div class="detail-message-box" id="modal-client-message">No message provided.</div>
+          </div>
+        </section>
+
+        <!-- 3. Status Progression & Counselor Notes (super_admin, branch_admin, counselor) -->
+        <section class="modal-action-card" aria-labelledby="status-notes-heading">
+          <h4 id="status-notes-heading">Update Status &amp; Counselor Notes</h4>
+          <form id="form-update-status-notes" onsubmit="return false;">
+            <div class="form-group">
+              <label for="modal-update-status" class="form-label">Progression Status <span class="required">*</span></label>
+              <select id="modal-update-status" class="form-control" required>
+                <option value="new">New (Unassigned / Awaiting contact)</option>
+                <option value="in_progress">In Progress (Active consultation)</option>
+                <option value="contacted">Contacted (Initial outreach completed)</option>
+                <option value="converted">Converted (Prospect successfully converted)</option>
+                <option value="closed">Closed (Inquiry concluded / inactive)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="modal-update-notes" class="form-label">Counselor Internal Notes</label>
+              <textarea id="modal-update-notes" class="form-control" rows="4" maxlength="5000" placeholder="Add follow-up observations, counseling outcome, or applicant background notes..."></textarea>
+              <div class="char-counter" id="notes-char-counter">0 / 5000 characters</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm" id="btn-save-status-notes">
+              Save Status &amp; Notes
+            </button>
+          </form>
+        </section>
+
+        <!-- 4. Preferred Branch Reassignment (super_admin & branch_admin only; hidden/disabled for counselor) -->
+        <section class="modal-action-card" aria-labelledby="branch-reassignment-heading" id="branch-reassignment-section">
+          <h4 id="branch-reassignment-heading">Reassign Preferred Branch</h4>
+          
+          <!-- Counselor Role Notice -->
+          <div id="counselor-branch-notice" style="display: none;" class="alert alert-info" role="alert">
+            <span class="alert-icon" aria-hidden="true">ℹ️</span>
+            <div class="alert-content">
+              <strong>Branch Reassignment Restricted</strong>
+              <span>Branch routing is managed by Super Administrators and Branch Administrators. Counselors may view current branch assignment above.</span>
+            </div>
+          </div>
+
+          <!-- Branch Reassignment Form (super_admin & branch_admin) -->
+          <form id="form-reassign-branch" onsubmit="return false;">
+            <div class="form-group">
+              <label for="modal-reassign-branch-select" class="form-label">Operational Branch Center</label>
+              <select id="modal-reassign-branch-select" class="form-control">
+                <option value="">— No Preferred Branch (Unassigned) —</option>
+                <!-- Populated dynamically via GET /api/branches -->
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-outline btn-sm" id="btn-save-branch-reassignment">
+              Reassign Branch
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <span style="font-size: 0.75rem; color: var(--color-slate-500);" id="modal-last-updated-text"></span>
+        <button type="button" class="btn btn-outline btn-sm" id="btn-modal-close-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side Scripts -->
+  <script src="/admin/js/admin-api.js"></script>
+  <script src="/admin/js/auth-guard.js"></script>
+  <script src="/admin/js/enquiries.js"></script>
+</body>
+</html>

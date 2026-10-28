@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Edupearl Immigration Services and Language Point - Administrative Branch Management.">
+  <title>Branch Management — Edupearl Admin</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-wrapper">
+    <!-- Shared Role-Aware Sidebar (Populated dynamically by auth-guard.js) -->
+    <aside class="admin-sidebar" id="admin-sidebar" aria-label="Main Admin Navigation">
+      <!-- Injected dynamically by window.authGuard.init() -->
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main">
+      <!-- Shared Top Bar (Populated dynamically by auth-guard.js) -->
+      <header class="admin-topbar" id="admin-topbar">
+        <!-- Injected dynamically by window.authGuard.init() -->
+      </header>
+
+      <main class="admin-content">
+        <!-- 1. Access Restricted View (For Branch Admin or Counselor attempting direct navigation) -->
+        <div id="access-restricted-view" style="display: none;" role="region" aria-label="Access Restricted">
+          <div class="access-restricted-card">
+            <div class="access-restricted-icon" aria-hidden="true">🔒</div>
+            <span class="badge badge-role-counselor access-restricted-badge">Role Restricted</span>
+            <h1 class="access-restricted-title">Branch Management Restricted</h1>
+            <p class="access-restricted-desc">
+              Branch center configuration, campus creation, and publication status management are strictly restricted to <strong>Super Administrators</strong>. Branch Administrators and Counselors may view active branch listings on the public website or when routing prospective student leads.
+            </p>
+            <div>
+              <a href="/admin/index.html" class="btn btn-primary btn-sm">Return to Dashboard</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Super Admin Branch Management View -->
+        <div id="branches-management-view" style="display: none;">
+          <!-- Module Header -->
+          <header class="dashboard-header">
+            <div class="dashboard-welcome">
+              <div>
+                <h1 class="welcome-title">Branch Management</h1>
+                <p class="welcome-sub">Configure physical campus offices, training facilities, and enquiry routing centers.</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="btn-refresh-listing" aria-label="Refresh branch directory">
+                  <span aria-hidden="true">&#x21bb;</span> Refresh
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-add-branch" aria-label="Add new branch center">
+                  <span aria-hidden="true">+</span> Add New Branch
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <!-- Notification Banner (For success toasts after create/update/status toggle) -->
+          <div id="branches-notification-banner" class="alert alert-success" style="display: none;" role="status" aria-live="polite">
+            <span class="alert-icon" aria-hidden="true">✓</span>
+            <div class="alert-content">
+              <span id="branches-notification-text">Action completed successfully.</span>
+            </div>
+          </div>
+
+          <!-- Filters & Search Panel -->
+          <section class="filters-card" aria-label="Filter Branches">
+            <form id="branches-filter-form" onsubmit="return false;">
+              <div class="filters-grid">
+                <!-- Search Keyword -->
+                <div class="filter-group">
+                  <label for="filter-search" class="filter-label">Search Branch</label>
+                  <input type="text" id="filter-search" class="filter-control" placeholder="Search by name, code, or city...">
+                </div>
+
+                <!-- Super Admin Inactive Toggle -->
+                <div class="filter-group">
+                  <label class="filter-label">Visibility Scope</label>
+                  <label class="filter-inactive-wrap" for="filter-include-inactive" title="Super Admin permission to view soft-deleted/deactivated branches">
+                    <input type="checkbox" id="filter-include-inactive">
+                    <span>Include Inactive Branches</span>
+                  </label>
+                </div>
+
+                <!-- Filter Actions -->
+                <div class="filter-group filter-actions">
+                  <button type="button" class="btn btn-outline btn-sm" id="btn-clear-filters" style="width: 100%;">
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </form>
+          </section>
+
+          <!-- Branch Directory Card -->
+          <section class="card" aria-label="Branch Directory Listing">
+            <!-- Metadata Bar -->
+            <div class="table-meta-bar">
+              <div id="branches-count-info" style="font-weight: 600;">
+                Loading branch directory...
+              </div>
+              <div id="branches-summary-badges" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Error Alert Banner -->
+            <div id="branches-error-banner" style="display: none;" class="alert alert-danger" role="alert">
+              <span class="alert-icon" aria-hidden="true">⚠️</span>
+              <div class="alert-content">
+                <strong>Unable to retrieve branches</strong>
+                <span id="branches-error-text">Network or server error occurred.</span>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-retry-branches" style="margin-left: auto;">
+                Retry
+              </button>
+            </div>
+
+            <!-- Responsive Data Table Container -->
+            <div id="branches-table-container">
+              <div class="table-responsive">
+                <table class="data-table" aria-label="Branch Records">
+                  <thead>
+                    <tr>
+                      <th scope="col" style="width: 130px;">Branch Code</th>
+                      <th scope="col">Branch Name</th>
+                      <th scope="col">Location</th>
+                      <th scope="col">Address</th>
+                      <th scope="col">Contact Phone &amp; Email</th>
+                      <th scope="col">Status</th>
+                      <th scope="col" style="text-align: right; min-width: 160px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="branches-tbody">
+                    <!-- Skeleton loading placeholders rendered on load -->
+                    <tr>
+                      <td colspan="7">
+                        <div class="skeleton skeleton-row"></div>
+                        <div class="skeleton skeleton-row"></div>
+                        <div class="skeleton skeleton-row"></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Empty State Container -->
+            <div id="branches-empty-state" class="empty-state" style="display: none;">
+              <div class="empty-icon" aria-hidden="true">🏢</div>
+              <h3 class="empty-title">No Branches Found</h3>
+              <p class="empty-desc">No branch records match your filter criteria. Try clearing search keywords or enabling inactive branch visibility.</p>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-empty-clear-filters" style="margin-top: 1rem;">
+                Reset All Filters
+              </button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal 1: Add / Edit Branch Modal (Super Admin only) -->
+  <div class="modal-overlay" id="modal-branch-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-branch-title" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="modal-branch-title">Add New Branch</h2>
+        </div>
+        <button type="button" class="btn-modal-close" id="btn-close-branch-modal" aria-label="Close branch modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Modal Error Alert Box (e.g. 409 Conflict duplicate code or 400 validation) -->
+        <div id="modal-branch-alert" style="display: none;" class="alert alert-danger" role="alert">
+          <span class="alert-icon" aria-hidden="true">⚠️</span>
+          <div class="alert-content">
+            <span id="modal-branch-alert-text">Validation error</span>
+          </div>
+        </div>
+
+        <form id="form-branch" onsubmit="return false;" novalidate>
+          <input type="hidden" id="branch-id" value="">
+
+          <!-- Row 1: Code & Name -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="branch-code" class="form-label">
+                Branch Code <span class="required">*</span>
+              </label>
+              <input type="text" id="branch-code" class="form-control" maxlength="20" required placeholder="e.g. BR-JAL-01" style="font-family: ui-monospace, monospace; text-transform: uppercase;">
+              <div class="form-help-text">2–20 alphanumeric chars, hyphens, or underscores. Unique across all branches.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="branch-name" class="form-label">
+                Branch Name <span class="required">*</span>
+              </label>
+              <input type="text" id="branch-name" class="form-control" maxlength="100" required placeholder="e.g. Model Town Training Center">
+              <div class="form-help-text">Official name of the training center or regional office (2–100 chars).</div>
+            </div>
+          </div>
+
+          <!-- Row 2: Address Line 1 & Line 2 -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="branch-address1" class="form-label">
+                Address Line 1 <span class="required">*</span>
+              </label>
+              <input type="text" id="branch-address1" class="form-control" maxlength="255" required placeholder="Street address, building, or knowledge hub (3–255 chars)">
+            </div>
+
+            <div class="form-group">
+              <label for="branch-address2" class="form-label">
+                Address Line 2 <span style="font-size: 0.75rem; color: var(--color-slate-500);">(Optional)</span>
+              </label>
+              <input type="text" id="branch-address2" class="form-control" maxlength="255" placeholder="Suite, floor, landmark, or campus wing">
+            </div>
+          </div>
+
+          <!-- Row 3: City, State, Postal Code, Country -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="branch-city" class="form-label">
+                City <span class="required">*</span>
+              </label>
+              <input type="text" id="branch-city" class="form-control" maxlength="100" required placeholder="e.g. Jalandhar">
+            </div>
+
+            <div class="form-group">
+              <label for="branch-state" class="form-label">
+                State <span class="required">*</span>
+              </label>
+              <input type="text" id="branch-state" class="form-control" maxlength="100" required placeholder="e.g. Punjab">
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="branch-postal" class="form-label">
+                Postal Code <span class="required">*</span>
+              </label>
+              <input type="text" id="branch-postal" class="form-control" maxlength="20" required placeholder="e.g. 144001">
+              <div class="form-help-text">3–20 alphanumeric characters or PIN code.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="branch-country" class="form-label">
+                Country
+              </label>
+              <input type="text" id="branch-country" class="form-control" maxlength="100" value="India" placeholder="e.g. India">
+            </div>
+          </div>
+
+          <!-- Row 4: Phone & Email -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="branch-phone" class="form-label">
+                Contact Phone <span style="font-size: 0.75rem; color: var(--color-slate-500);">(Optional)</span>
+              </label>
+              <input type="text" id="branch-phone" class="form-control" maxlength="30" placeholder="e.g. +91-181-0000000">
+              <div class="form-help-text">Operational telephone or mobile contact (6–30 chars).</div>
+            </div>
+
+            <div class="form-group">
+              <label for="branch-email" class="form-label">
+                Contact Email <span style="font-size: 0.75rem; color: var(--color-slate-500);">(Optional)</span>
+              </label>
+              <input type="email" id="branch-email" class="form-control" maxlength="100" placeholder="e.g. jalandhar@edupearl.in">
+              <div class="form-help-text">Direct inquiry email address for regional desk.</div>
+            </div>
+          </div>
+
+          <!-- Row 5: Active Status -->
+          <div class="form-group" style="margin-top: 0.5rem;">
+            <label class="form-check-card" for="branch-active">
+              <input type="checkbox" id="branch-active" checked>
+              <div class="form-check-card-text">
+                <span class="form-check-card-title">✓ Active Operational Branch</span>
+                <span class="form-check-card-subtitle">Publicly visible on website branch directory and selectable on student enquiry forms.</span>
+              </div>
+            </label>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" id="btn-cancel-branch">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-save-branch">
+          <span id="btn-save-spinner" class="spinner" style="display: none;" aria-hidden="true"></span>
+          <span id="btn-save-text">Save Branch</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: View Branch Details Modal (Read-Only) -->
+  <div class="modal-overlay" id="modal-view-branch-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-view-branch-title" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="modal-view-branch-title">Branch Center Details</h2>
+          <span id="modal-view-status-badge"></span>
+          <span id="modal-view-demo-badge"></span>
+        </div>
+        <button type="button" class="btn-modal-close" id="btn-close-view-modal" aria-label="Close branch view modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Overview Grid -->
+        <section aria-labelledby="view-branch-overview-heading">
+          <h3 class="detail-section-title" id="view-branch-overview-heading">Campus Identification</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Branch Code</span>
+              <span class="detail-value" id="view-branch-code" style="font-family: ui-monospace, monospace;">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Branch Name</span>
+              <span class="detail-value" id="view-branch-name">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">City</span>
+              <span class="detail-value" id="view-branch-city">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">State &amp; Country</span>
+              <span class="detail-value" id="view-branch-state-country">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Postal / PIN Code</span>
+              <span class="detail-value" id="view-branch-postal">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Database Record ID</span>
+              <span class="detail-value" id="view-branch-id">—</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Physical Address -->
+        <section aria-labelledby="view-branch-address-heading">
+          <h3 class="detail-section-title" id="view-branch-address-heading">Full Physical Address</h3>
+          <div class="detail-message-box" id="view-branch-full-address">—</div>
+        </section>
+
+        <!-- Contact Information -->
+        <section aria-labelledby="view-branch-contact-heading">
+          <h3 class="detail-section-title" id="view-branch-contact-heading">Contact Information</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Telephone / Mobile</span>
+              <span class="detail-value" id="view-branch-phone">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Inquiry Email</span>
+              <span class="detail-value" id="view-branch-email">—</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Audit Metadata -->
+        <section aria-labelledby="view-branch-audit-heading">
+          <h3 class="detail-section-title" id="view-branch-audit-heading">System Audit Information</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Created At</span>
+              <span class="detail-value" id="view-branch-created">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Last Updated At</span>
+              <span class="detail-value" id="view-branch-updated">—</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <span style="font-size: 0.8125rem; color: var(--color-slate-500);" id="modal-view-footer-info"></span>
+        <button type="button" class="btn btn-outline btn-sm" id="btn-close-view-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Deactivation / Reactivation Confirmation Modal (Super Admin only) -->
+  <div class="modal-overlay" id="modal-confirm-branch-status-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-branch-title" style="display: none;">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-confirm-branch-title">Confirm Branch Status Change</h2>
+        <button type="button" class="btn-modal-close" id="btn-close-confirm-modal" aria-label="Close status confirmation modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Warning / Notice card -->
+        <div id="confirm-warning-box" class="modal-warning-card">
+          <span class="warning-icon" aria-hidden="true">⚠️</span>
+          <div>
+            <strong id="confirm-warning-title">Deactivating Branch Location</strong>
+            <p id="confirm-warning-text" style="margin-top: 0.25rem;">
+              Deactivating this branch will hide it from the public active branch directory and prevent candidates from selecting it on new enquiry forms. Existing historical enquiry records assigned to this branch are fully preserved in the database. You can reactivate this branch at any time.
+            </p>
+          </div>
+        </div>
+
+        <div style="background-color: var(--color-slate-50); border: 1px solid var(--color-slate-200); border-radius: var(--radius-md); padding: 1rem;">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--color-slate-500); margin-bottom: 0.25rem;">Target Branch</div>
+          <div style="font-size: 1rem; font-weight: 700; color: var(--color-slate-900);" id="confirm-target-branch-name">—</div>
+          <div style="font-size: 0.8125rem; color: var(--color-slate-600); margin-top: 0.25rem;">
+            Code: <code id="confirm-target-branch-code" style="font-family: monospace;">—</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" id="btn-cancel-branch-confirm">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btn-execute-branch-status">
+          <span id="btn-status-spinner" class="spinner" style="display: none;" aria-hidden="true"></span>
+          <span id="btn-status-btn-text">Confirm Deactivation</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side Scripts -->
+  <script src="/admin/js/admin-api.js"></script>
+  <script src="/admin/js/auth-guard.js"></script>
+  <script src="/admin/js/branches.js"></script>
+</body>
+</html>

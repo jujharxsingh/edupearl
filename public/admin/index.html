@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Edupearl Immigration Services and Language Point - Administrative Management Dashboard.">
+  <title>Admin Dashboard — Edupearl Immigration Services and Language Point</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-wrapper">
+    <!-- Shared Role-Aware Sidebar (Populated by auth-guard.js) -->
+    <aside class="admin-sidebar" id="admin-sidebar" aria-label="Main Admin Navigation">
+      <!-- Injected dynamically by window.authGuard.init() -->
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main">
+      <!-- Shared Top Bar (Populated by auth-guard.js) -->
+      <header class="admin-topbar" id="admin-topbar">
+        <!-- Injected dynamically by window.authGuard.init() -->
+      </header>
+
+      <main class="admin-content">
+        <!-- Dashboard Header & Welcome Section -->
+        <header class="dashboard-header">
+          <div class="dashboard-welcome">
+            <div>
+              <h1 class="welcome-title">Welcome back, <span id="welcome-admin-name">Administrator</span>!</h1>
+              <p class="welcome-sub">Edupearl Immigration Services and Language Point &mdash; Centralized Management Portal</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="badge badge-role-counselor" id="welcome-role-badge">Verifying Role...</span>
+              <span id="welcome-admin-email" style="font-size: 0.8125rem; color: var(--color-slate-500);"></span>
+            </div>
+          </div>
+
+          <!-- System Health Diagnostics Bar -->
+          <div class="system-health-bar" role="region" aria-label="System Operational Health Diagnostics">
+            <div class="health-status-group">
+              <div class="health-item" id="health-summary-text">
+                Verifying system operational status...
+              </div>
+              <span style="color: var(--color-slate-300);" aria-hidden="true">|</span>
+              <div class="health-item" title="API Service Liveness Check">
+                <span class="status-dot dot-loading" id="health-api-dot" aria-hidden="true"></span>
+                <span id="health-api-text">API: Checking...</span>
+              </div>
+              <div class="health-item" title="MySQL Database Connection Pool Ping">
+                <span class="status-dot dot-loading" id="health-db-dot" aria-hidden="true"></span>
+                <span id="health-db-text">Database: Checking...</span>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span id="health-timestamp" style="font-size: 0.75rem; color: var(--color-slate-500);">Checking...</span>
+              <button type="button" class="btn-health-refresh" id="btn-health-refresh" aria-label="Refresh system health diagnostics">
+                <span aria-hidden="true">&#x21bb;</span> Refresh Status
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- KPI Summary Cards Grid -->
+        <section class="kpi-grid" aria-label="Key Performance Indicators">
+          <!-- Total Enquiries -->
+          <div class="kpi-card kpi-primary">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Enquiries</span>
+              <span class="kpi-icon-pill" aria-hidden="true">📨</span>
+            </div>
+            <div class="kpi-value" id="kpi-total-enquiries">
+              <div class="skeleton skeleton-kpi" aria-label="Loading metric..."></div>
+            </div>
+            <div class="kpi-subtext">All received inquiries across branches</div>
+          </div>
+
+          <!-- New / Action Needed -->
+          <div class="kpi-card kpi-amber">
+            <div class="kpi-header">
+              <span class="kpi-title">New / Action Needed</span>
+              <span class="kpi-icon-pill" aria-hidden="true">🔔</span>
+            </div>
+            <div class="kpi-value" id="kpi-new-enquiries">
+              <div class="skeleton skeleton-kpi" aria-label="Loading metric..."></div>
+            </div>
+            <div class="kpi-subtext">Unassigned or awaiting counselor contact</div>
+          </div>
+
+          <!-- In Progress -->
+          <div class="kpi-card kpi-blue">
+            <div class="kpi-header">
+              <span class="kpi-title">In Progress</span>
+              <span class="kpi-icon-pill" aria-hidden="true">⏳</span>
+            </div>
+            <div class="kpi-value" id="kpi-in-progress-enquiries">
+              <div class="skeleton skeleton-kpi" aria-label="Loading metric..."></div>
+            </div>
+            <div class="kpi-subtext">Under active consultation &amp; follow-up</div>
+          </div>
+
+          <!-- Converted Enquiries -->
+          <div class="kpi-card kpi-emerald">
+            <div class="kpi-header">
+              <span class="kpi-title">Converted Enquiries</span>
+              <span class="kpi-icon-pill" aria-hidden="true">🎯</span>
+            </div>
+            <div class="kpi-value" id="kpi-converted-enquiries">
+              <div class="skeleton skeleton-kpi" aria-label="Loading metric..."></div>
+            </div>
+            <div class="kpi-subtext">Successfully converted prospect consultations</div>
+          </div>
+
+          <!-- Active Services & Courses -->
+          <div class="kpi-card kpi-purple">
+            <div class="kpi-header">
+              <span class="kpi-title">Active Services &amp; Courses</span>
+              <span class="kpi-icon-pill" aria-hidden="true">📚</span>
+            </div>
+            <div class="kpi-value" id="kpi-active-services">
+              <div class="skeleton skeleton-kpi" aria-label="Loading metric..."></div>
+            </div>
+            <div class="kpi-subtext">Visa consultations &amp; language courses</div>
+          </div>
+
+          <!-- Active Branches -->
+          <div class="kpi-card kpi-slate">
+            <div class="kpi-header">
+              <span class="kpi-title">Active Branches</span>
+              <span class="kpi-icon-pill" aria-hidden="true">🏢</span>
+            </div>
+            <div class="kpi-value" id="kpi-active-branches">
+              <div class="skeleton skeleton-kpi" aria-label="Loading metric..."></div>
+            </div>
+            <div class="kpi-subtext">Operational branch centers in network</div>
+          </div>
+        </section>
+
+        <!-- Recent Enquiries Section -->
+        <section class="card" aria-labelledby="recent-enquiries-heading">
+          <div class="card-header">
+            <h2 class="card-title" id="recent-enquiries-heading">Recent Enquiries</h2>
+            <a 
+              href="/admin/enquiries.html" 
+              class="btn btn-outline btn-sm" 
+              title="Open full enquiry management interface">
+              View All Enquiries &rarr;
+            </a>
+          </div>
+
+          <!-- Error Alert Container (Hidden by default) -->
+          <div id="recent-enquiries-error" style="display: none;" class="alert alert-danger" role="alert">
+            <span class="alert-icon" aria-hidden="true">⚠️</span>
+            <div class="alert-content">
+              <strong>Unable to load enquiries</strong>
+              <span class="error-message-text">Please check server connectivity.</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-retry-recent-enquiries" style="margin-left: auto;">
+              Retry
+            </button>
+          </div>
+
+          <!-- Responsive Data Table Container -->
+          <div id="recent-enquiries-table-container">
+            <div class="table-responsive">
+              <table class="data-table" aria-label="Recent Enquiries Listing">
+                <thead>
+                  <tr>
+                    <th scope="col">Reference</th>
+                    <th scope="col">Applicant &amp; Contact</th>
+                    <th scope="col">Service / Course</th>
+                    <th scope="col">Preferred Branch</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Submitted</th>
+                    <th scope="col" style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-enquiries-tbody">
+                  <!-- Skeleton loading placeholders rendered on load -->
+                  <tr>
+                    <td colspan="7">
+                      <div class="skeleton skeleton-row"></div>
+                      <div class="skeleton skeleton-row"></div>
+                      <div class="skeleton skeleton-row"></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Empty State (Hidden by default) -->
+          <div id="recent-enquiries-empty" class="empty-state" style="display: none;">
+            <div class="empty-icon" aria-hidden="true">📭</div>
+            <h3 class="empty-title">No Enquiries Received Yet</h3>
+            <p class="empty-desc">Public applicant inquiries submitted through the website will appear here in real-time.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Client-side Scripts -->
+  <script src="/admin/js/admin-api.js"></script>
+  <script src="/admin/js/auth-guard.js"></script>
+  <script src="/admin/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Edupearl Immigration Services and Language Point - Administrative Services & Courses Management.">
+  <title>Services & Courses Management — Edupearl Admin</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-wrapper">
+    <!-- Shared Role-Aware Sidebar (Populated dynamically by auth-guard.js) -->
+    <aside class="admin-sidebar" id="admin-sidebar" aria-label="Main Admin Navigation">
+      <!-- Injected dynamically by window.authGuard.init() -->
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main">
+      <!-- Shared Top Bar (Populated dynamically by auth-guard.js) -->
+      <header class="admin-topbar" id="admin-topbar">
+        <!-- Injected dynamically by window.authGuard.init() -->
+      </header>
+
+      <main class="admin-content">
+        <!-- Module Header -->
+        <header class="dashboard-header">
+          <div class="dashboard-welcome">
+            <div>
+              <h1 class="welcome-title">Services &amp; Courses Management</h1>
+              <p class="welcome-sub">Manage immigration visa consultation offerings and language proficiency courses.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-refresh-listing" aria-label="Refresh services listing">
+                <span aria-hidden="true">&#x21bb;</span> Refresh
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-add-service" style="display: none;" aria-label="Add new service or course">
+                <span aria-hidden="true">+</span> Add Service / Course
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Counselor Read-Only Role Notice (Displayed only for Counselor role) -->
+        <div id="counselor-notice-banner" class="counselor-readonly-banner" style="display: none;" role="note">
+          <span style="font-size: 1.25rem;" aria-hidden="true">ℹ️</span>
+          <div>
+            <strong>Read-Only Access (Counselor):</strong> You can inspect all active language courses and visa services to advise applicants. Adding, editing, and publishing status modifications are managed by Super Administrators and Branch Administrators.
+          </div>
+        </div>
+
+        <!-- Notification Banner (For success messages after create/update/status toggle) -->
+        <div id="services-notification-banner" class="alert alert-success" style="display: none;" role="status" aria-live="polite">
+          <span class="alert-icon" aria-hidden="true">✓</span>
+          <div class="alert-content">
+            <span id="services-notification-text">Action completed successfully.</span>
+          </div>
+        </div>
+
+        <!-- Filters & Search Panel -->
+        <section class="filters-card" aria-label="Filter Services and Courses">
+          <form id="services-filter-form" onsubmit="return false;">
+            <div class="filters-grid">
+              <!-- Search Keyword -->
+              <div class="filter-group">
+                <label for="filter-search" class="filter-label">Search Keyword</label>
+                <input type="text" id="filter-search" class="filter-control" placeholder="Search by title or slug...">
+              </div>
+
+              <!-- Category Filter -->
+              <div class="filter-group">
+                <label for="filter-category" class="filter-label">Category</label>
+                <select id="filter-category" class="filter-control">
+                  <option value="">All Categories</option>
+                  <option value="language_course">Language Courses (IELTS / PTE / Spoken)</option>
+                  <option value="immigration_service">Immigration Services (Study / Visitor / PR)</option>
+                </select>
+              </div>
+
+              <!-- Super Admin Inactive Toggle (Strictly hidden for Branch Admin & Counselor) -->
+              <div class="filter-group" id="filter-inactive-container" style="display: none;">
+                <label class="filter-label">Visibility Scope</label>
+                <label class="filter-inactive-wrap" for="filter-include-inactive" title="Super Admin elevated permission to view soft-deleted/inactive services">
+                  <input type="checkbox" id="filter-include-inactive">
+                  <span>Include Inactive Records</span>
+                </label>
+              </div>
+
+              <!-- Filter Actions -->
+              <div class="filter-group filter-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="btn-clear-filters" style="width: 100%;">
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <!-- Services Data Card -->
+        <section class="card" aria-label="Services and Courses Listing">
+          <!-- Metadata Bar -->
+          <div class="table-meta-bar">
+            <div id="services-count-info" style="font-weight: 600;">
+              Loading services and courses...
+            </div>
+            <div id="services-summary-badges" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Error Alert Banner -->
+          <div id="services-error-banner" style="display: none;" class="alert alert-danger" role="alert">
+            <span class="alert-icon" aria-hidden="true">⚠️</span>
+            <div class="alert-content">
+              <strong>Unable to retrieve services</strong>
+              <span id="services-error-text">Network or server error occurred.</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-retry-services" style="margin-left: auto;">
+              Retry
+            </button>
+          </div>
+
+          <!-- Responsive Data Table Container -->
+          <div id="services-table-container">
+            <div class="table-responsive">
+              <table class="data-table" aria-label="Services and Courses Records">
+                <thead>
+                  <tr>
+                    <th scope="col" style="width: 80px;">Order</th>
+                    <th scope="col">Title &amp; Slug</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Duration</th>
+                    <th scope="col">Featured</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" style="text-align: right; min-width: 160px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="services-tbody">
+                  <!-- Skeleton loading placeholders rendered on initial load -->
+                  <tr>
+                    <td colspan="7">
+                      <div class="skeleton skeleton-row"></div>
+                      <div class="skeleton skeleton-row"></div>
+                      <div class="skeleton skeleton-row"></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Empty State Container -->
+          <div id="services-empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon" aria-hidden="true">📚</div>
+            <h3 class="empty-title">No Services or Courses Found</h3>
+            <p class="empty-desc">No records match your selected filter criteria. Try clearing search keywords or resetting category filters.</p>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-empty-clear-filters" style="margin-top: 1rem;">
+              Reset All Filters
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal 1: Add / Edit Service Modal (super_admin & branch_admin) -->
+  <div class="modal-overlay" id="modal-service-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-service-title" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="modal-service-title">Add New Service / Course</h2>
+        </div>
+        <button type="button" class="btn-modal-close" id="btn-close-service-modal" aria-label="Close service modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Modal Error Alert Box (e.g. 409 Conflict duplicate slug or 400 validation) -->
+        <div id="modal-service-alert" style="display: none;" class="alert alert-danger" role="alert">
+          <span class="alert-icon" aria-hidden="true">⚠️</span>
+          <div class="alert-content">
+            <span id="modal-service-alert-text">Validation error</span>
+          </div>
+        </div>
+
+        <form id="form-service" onsubmit="return false;" novalidate>
+          <input type="hidden" id="service-id" value="">
+
+          <!-- Row 1: Title & Category -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="service-title" class="form-label">
+                Title <span class="required">*</span>
+              </label>
+              <input type="text" id="service-title" class="form-control" maxlength="150" required placeholder="e.g. IELTS Academic Comprehensive Preparation">
+              <div class="char-counter" id="counter-title">0 / 150</div>
+            </div>
+
+            <div class="form-group">
+              <label for="service-category" class="form-label">
+                Category <span class="required">*</span>
+              </label>
+              <select id="service-category" class="form-control" required>
+                <option value="">— Select Category —</option>
+                <option value="language_course">Language Course</option>
+                <option value="immigration_service">Immigration Service</option>
+              </select>
+              <div class="form-help-text">Select program classification.</div>
+            </div>
+          </div>
+
+          <!-- Row 2: URL Slug -->
+          <div class="form-group">
+            <label for="service-slug" class="form-label">
+              URL Slug <span class="required">*</span>
+            </label>
+            <input type="text" id="service-slug" class="form-control" maxlength="100" required placeholder="e.g. ielts-academic-coaching" style="font-family: ui-monospace, monospace;">
+            <div class="form-help-text">
+              Must be unique across all services. Lowercase alphanumeric characters and single hyphens (2–100 chars). Auto-suggested from title.
+            </div>
+          </div>
+
+          <!-- Row 3: Short Description -->
+          <div class="form-group">
+            <label for="service-short-description" class="form-label">
+              Short Description <span class="required">*</span>
+            </label>
+            <textarea id="service-short-description" class="form-control" rows="3" maxlength="300" required placeholder="Brief summary displayed on cards and catalogs (5–300 characters)..."></textarea>
+            <div class="char-counter" id="counter-short-desc">0 / 300</div>
+          </div>
+
+          <!-- Row 4: Detailed Description -->
+          <div class="form-group">
+            <label for="service-detailed-description" class="form-label">
+              Detailed Description <span style="font-size: 0.75rem; color: var(--color-slate-500);">(Optional)</span>
+            </label>
+            <textarea id="service-detailed-description" class="form-control" rows="5" placeholder="Full curriculum details, modules, visa eligibility advisory notes, etc..."></textarea>
+            <div class="form-help-text">Optional comprehensive information shown on public detail dialogs.</div>
+          </div>
+
+          <!-- Row 5: Duration Info & Display Order -->
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="service-duration-info" class="form-label">
+                Duration Information <span style="font-size: 0.75rem; color: var(--color-slate-500);">(Optional)</span>
+              </label>
+              <input type="text" id="service-duration-info" class="form-control" maxlength="100" placeholder="e.g. 8 Weeks, 12 Weeks Intensive, Ongoing Consultation">
+              <div class="form-help-text">Expected duration or program timeline (max 100 characters).</div>
+            </div>
+
+            <div class="form-group">
+              <label for="service-display-order" class="form-label">
+                Display Order
+              </label>
+              <input type="number" id="service-display-order" class="form-control" value="0" step="1" placeholder="0">
+              <div class="form-help-text">Sort priority in public listings (lower numbers appear first).</div>
+            </div>
+          </div>
+
+          <!-- Row 6: Featured Flag & Super Admin Active Status -->
+          <div class="form-row-2col" style="margin-top: 0.5rem;">
+            <!-- Featured Toggle -->
+            <label class="form-check-card" for="service-is-featured">
+              <input type="checkbox" id="service-is-featured">
+              <div class="form-check-card-text">
+                <span class="form-check-card-title">⭐ Featured Program</span>
+                <span class="form-check-card-subtitle">Highlight on homepage and prominent catalog sections.</span>
+              </div>
+            </label>
+
+            <!-- Super Admin Status Toggle (Hidden for Branch Admin) -->
+            <div id="service-active-container">
+              <label class="form-check-card" for="service-is-active">
+                <input type="checkbox" id="service-is-active" checked>
+                <div class="form-check-card-text">
+                  <span class="form-check-card-title">✓ Active (Published)</span>
+                  <span class="form-check-card-subtitle">Publicly visible to website visitors and enquiry forms.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" id="btn-cancel-service">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-save-service">
+          <span id="btn-save-spinner" class="spinner" style="display: none;" aria-hidden="true"></span>
+          <span id="btn-save-text">Save Record</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: View Details Modal (Read-Only for all roles) -->
+  <div class="modal-overlay" id="modal-view-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-view-title" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 class="modal-title" id="modal-view-title">Service Details</h2>
+          <span id="modal-view-status-badge"></span>
+          <span id="modal-view-featured-badge"></span>
+        </div>
+        <button type="button" class="btn-modal-close" id="btn-close-view-modal" aria-label="Close view modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Overview Grid -->
+        <section aria-labelledby="view-overview-heading">
+          <h3 class="detail-section-title" id="view-overview-heading">Program Overview</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Title</span>
+              <span class="detail-value" id="view-field-title">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Category</span>
+              <span class="detail-value" id="view-field-category">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">URL Slug</span>
+              <span class="detail-value" id="view-field-slug" style="font-family: ui-monospace, monospace;">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Duration</span>
+              <span class="detail-value" id="view-field-duration">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Display Order</span>
+              <span class="detail-value" id="view-field-order">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Database Record ID</span>
+              <span class="detail-value" id="view-field-id">—</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Short Description -->
+        <section aria-labelledby="view-short-desc-heading">
+          <h3 class="detail-section-title" id="view-short-desc-heading">Short Description (Catalog Summary)</h3>
+          <div class="detail-message-box" id="view-field-short-desc">—</div>
+        </section>
+
+        <!-- Detailed Description -->
+        <section aria-labelledby="view-detailed-desc-heading">
+          <h3 class="detail-section-title" id="view-detailed-desc-heading">Detailed Description</h3>
+          <div class="detail-message-box" id="view-field-detailed-desc" style="max-height: 220px; overflow-y: auto;">—</div>
+        </section>
+
+        <!-- Audit Metadata -->
+        <section aria-labelledby="view-audit-heading">
+          <h3 class="detail-section-title" id="view-audit-heading">Audit Information</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Created At</span>
+              <span class="detail-value" id="view-field-created">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Last Updated At</span>
+              <span class="detail-value" id="view-field-updated">—</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <span style="font-size: 0.8125rem; color: var(--color-slate-500);" id="modal-view-footer-info"></span>
+        <button type="button" class="btn btn-outline btn-sm" id="btn-close-view-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Deactivation / Reactivation Confirmation Modal (Super Admin only) -->
+  <div class="modal-overlay" id="modal-confirm-status-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-status-title" style="display: none;">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-confirm-status-title">Confirm Status Change</h2>
+        <button type="button" class="btn-modal-close" id="btn-close-confirm-modal" aria-label="Close status confirmation modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Informational / Warning Notice -->
+        <div id="confirm-warning-box" class="modal-warning-card">
+          <span class="warning-icon" aria-hidden="true">⚠️</span>
+          <div>
+            <strong id="confirm-warning-title">Deactivating Service / Course</strong>
+            <p id="confirm-warning-text" style="margin-top: 0.25rem;">
+              Deactivating this record hides it from the public active catalog and enquiry forms, but preserves its historical database record and client enquiries. You can reactivate it at any time.
+            </p>
+          </div>
+        </div>
+
+        <div style="background-color: var(--color-slate-50); border: 1px solid var(--color-slate-200); border-radius: var(--radius-md); padding: 1rem;">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--color-slate-500); margin-bottom: 0.25rem;">Target Record</div>
+          <div style="font-size: 1rem; font-weight: 700; color: var(--color-slate-900);" id="confirm-target-title">—</div>
+          <div style="font-size: 0.8125rem; color: var(--color-slate-600); margin-top: 0.25rem;">
+            Slug: <code id="confirm-target-slug" style="font-family: monospace;">—</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" id="btn-cancel-confirm">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btn-execute-status-change">
+          <span id="btn-status-spinner" class="spinner" style="display: none;" aria-hidden="true"></span>
+          <span id="btn-status-btn-text">Confirm Deactivation</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side Scripts -->
+  <script src="/admin/js/admin-api.js"></script>
+  <script src="/admin/js/auth-guard.js"></script>
+  <script src="/admin/js/services.js"></script>
+</body>
+</html>

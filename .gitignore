@@ -1,0 +1,36 @@
+# Environment variables and secrets (NEVER commit actual credentials)
+.env
+.env.local
+.env.*.local
+
+# Node dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs/
+
+# Operating System files
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+
+# IDE and Editor configs
+.vscode/
+.idea/
+
+# Test artifacts and session files
+cookies.txt
+*.cookie
+*-test.json
+*.tmp
+scratch/
+*.temp.html
+
+# Generated documentation artifacts (large PDFs)
+documentation/source-code-pdf/*.pdf
+
+

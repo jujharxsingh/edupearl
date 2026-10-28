@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Select your local Edupearl branch location to access training schedules, IELTS/PTE coaching batches, and study visa counseling.">
+  <title>Select Your Center — Edupearl Immigration Services and Language Point</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/public.css">
+</head>
+<body>
+
+
+  <!-- Navigation Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/" class="nav-brand" aria-label="Edupearl Immigration Services and Language Point">
+        <img src="/images/Edu Pearl Education Logo.png" alt="Edupearl Immigration Services and Language Point logo" class="brand-logo-img">
+      </a>
+
+      <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        ☰
+      </button>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links" id="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/courses.html" class="nav-link">Courses</a></li>
+          <li><a href="/services.html" class="nav-link">Services</a></li>
+          <li><a href="/about.html" class="nav-link">About</a></li>
+          <li><a href="/contact.html" class="nav-link">Contact</a></li>
+          <li><a href="https://wa.me/919115052624" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-sm nav-cta-whatsapp" id="nav-whatsapp-btn" title="Chat on WhatsApp (+91 91150 52624)">WhatsApp Us</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Section 1: Hero Header (Video Background - Royal Amethyst Gradient) -->
+    <section class="section branch-select-hero-section section-has-video video-gradient-amethyst" aria-labelledby="select-branch-title">
+      <div class="section-video-wrap" aria-hidden="true">
+        <video class="section-video-element" autoplay loop muted playsinline preload="auto" poster="/videos/bg-abstract-poster.jpg">
+          <source src="/videos/bg-abstract.webm" type="video/webm">
+          <source src="/videos/bg-abstract.mp4" type="video/mp4">
+        </video>
+        <div class="section-video-overlay"></div>
+      </div>
+      <div class="container">
+        <!-- Hero Header -->
+        <div class="branch-select-hero reveal">
+          <span class="badge badge-primary">Center Selection</span>
+          <h1 id="select-branch-title">Select Your Preferred Training Center</h1>
+          <p>
+            Welcome to Edupearl Immigration Services & Language Point. Select your nearest physical branch location to continue to tailored <strong class="keyword-pill">IELTS / PTE</strong> course modules, coaching schedules, and expert <strong class="keyword-pill">Visa Consultation</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Branch Selection Cards Grid (Clean In-Between - Warm Ivory Gradient) -->
+    <section class="section branch-select-cards-section section-gradient-ivory" aria-label="Branch Locations Grid">
+      <div class="container">
+        <!-- Currently Selected Center Banner (Displays when user already has a saved selection) -->
+        <div id="current-selection-container" style="display: none;"></div>
+
+        <!-- Search and Filter Controls -->
+        <div class="branch-filter-bar reveal" id="branch-filter-bar" style="display: none;">
+          <div class="branch-search-box">
+            <span class="branch-search-icon" aria-hidden="true">🔍</span>
+            <input type="text" id="branch-search-input" class="branch-search-input" placeholder="Search by city, center name, or code..." aria-label="Search branch locations">
+          </div>
+          <div class="branch-count-badge" id="branch-count-badge" aria-live="polite"></div>
+        </div>
+
+        <!-- Dynamic Branch Selection Grid -->
+        <div id="branches-selection-container" class="cards-grid reveal-stagger" aria-live="polite">
+          <!-- Populated dynamically by select-branch.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h4>Edupearl</h4>
+          <p>
+            Edupearl Immigration Services and Language Point provides comprehensive test preparation and transparent overseas education and visa consultation.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h5>Quick Navigation</h5>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/courses.html">Courses</a></li>
+            <li><a href="/services.html">Services</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Consultation Hours</h5>
+          <p style="font-size: 0.8125rem; color: var(--color-slate-400); line-height: 1.6;">
+            Monday – Saturday: 9:00 AM – 6:00 PM<br>
+            Sunday: Closed<br>
+            Personalized guidance for admissions & visa counseling.
+          </p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Edupearl Immigration Services and Language Point. All rights reserved.</p>
+        <p>Excellence in Language Coaching & Visa Guidance</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/select-branch.js"></script>
+</body>
+</html>
