@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: edupearl-web-portal
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run db:migrate && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_INITIAL_USERNAME
+        value: jujhar
+      - key: ADMIN_INITIAL_EMAIL
+        value: jujhar@edupearl.in
+      - key: ADMIN_INITIAL_PASSWORD
+        value: Edupearl@2026!
+      - key: ADMIN_INITIAL_NAME
+        value: Jujhar Singh
