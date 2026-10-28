@@ -70,7 +70,7 @@ async function verifyAll() {
     const res = await fetch(`${cleanBaseUrl}/api/health/db`);
     if (res.status !== 200) throw new Error(`Expected HTTP 200, got ${res.status}`);
     const data = await res.json();
-    if (data.status !== 'ok' || !data.database || data.database.status !== 'connected') {
+    if (data.status !== 'ok' || data.database !== 'connected') {
       throw new Error(`Database reported unhealthy: ${JSON.stringify(data)}`);
     }
   });
@@ -104,12 +104,12 @@ async function verifyAll() {
   // Step 6: Public Lead Submission
   await runStep('POST /api/enquiries (Lead Enquiry Submission & DB Persistence)', async () => {
     const payload = {
-      fullName: 'Live Deployment Verifier',
+      full_name: 'Live Deployment Verifier',
       email: testEnquiryEmail,
       phone: testEnquiryPhone,
       city: 'Ludhiana',
       message: 'Automated verification test of live deployment.',
-      targetCountry: 'Canada'
+      target_country: 'Canada'
     };
 
     const res = await fetch(`${cleanBaseUrl}/api/enquiries`, {
@@ -123,7 +123,7 @@ async function verifyAll() {
       throw new Error(`Expected HTTP 201 Created, got ${res.status}: ${errBody}`);
     }
     const data = await res.json();
-    if (!data.reference || !data.reference.startsWith('ENQ-')) {
+    if (!data.enquiry || !data.enquiry.enquiry_reference || !data.enquiry.enquiry_reference.startsWith('ENQ-')) {
       throw new Error(`Invalid reference code received: ${JSON.stringify(data)}`);
     }
   });
@@ -146,21 +146,21 @@ async function verifyAll() {
 
     // Extract cookie
     const rawCookie = res.headers.get('set-cookie');
-    if (!rawCookie || !rawCookie.includes('edupearl_auth_token=')) {
+    if (!rawCookie || !rawCookie.includes('edupearl_token=')) {
       throw new Error('Login succeeded but auth cookie was not set in headers');
     }
     authCookie = rawCookie.split(';')[0];
   });
 
   // Step 8: Authenticated Admin Session Validation
-  await runStep('GET /api/auth/me (Protected Admin Session)', async () => {
+  await runStep('GET /api/admin/me (Protected Admin Session)', async () => {
     if (!authCookie) throw new Error('Skipping: No auth cookie available');
-    const res = await fetch(`${cleanBaseUrl}/api/auth/me`, {
+    const res = await fetch(`${cleanBaseUrl}/api/admin/me`, {
       headers: { 'Cookie': authCookie }
     });
     if (res.status !== 200) throw new Error(`Expected HTTP 200, got ${res.status}`);
     const data = await res.json();
-    if (data.status !== 'success' || !data.admin) {
+    if (data.status !== 'ok' || !data.admin || data.admin.username !== 'jujhar') {
       throw new Error(`Session verification failed: ${JSON.stringify(data)}`);
     }
   });
