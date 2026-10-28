@@ -23,3 +23,4 @@ services:
         value: Edupearl@2026!
       - key: ADMIN_INITIAL_NAME
         value: Jujhar Singh
+
